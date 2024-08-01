@@ -1,4 +1,4 @@
-package com.vengat.bitcoin_service.cache;
+package com.vengat.bitcoin_service.cache.obsolete;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,7 +7,7 @@ import java.util.Stack;
 
 import com.vengat.bitcoin_service.model.BitcoinPrice;
 
-public class BitcoinBTree {
+public class BitcoinBTree_Old {
     private BTreeNode root;
     private int t;
 
@@ -25,7 +25,7 @@ public class BitcoinBTree {
         }
     }
 
-    public BitcoinBTree(int t) {
+    public BitcoinBTree_Old(int t) {
         this.t = t;
         root = new BTreeNode(true);
     }

@@ -1,38 +1,36 @@
 package com.vengat.bitcoin_service.service;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-// import org.springframework.boot.configurationprocessor.json.JSONObject;
-
 import com.vengat.bitcoin_service.api.BitcoinService;
 import com.vengat.bitcoin_service.cache.BitcoinBtree;
-import com.vengat.bitcoin_service.cache.obsolete.BitcoinBTree_Old;
 import com.vengat.bitcoin_service.model.BitcoinPrice;
 import com.vengat.bitcoin_service.model.BitcoinPriceResponse;
-import com.vengat.bitcoin_service.util.BitcoinUtil;
 import com.vengat.bitcoin_service.util.RestUtil;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class BitcoinServiceImpl implements BitcoinService {
 
-    private static final String HISTORICAL_PRICE_URL = "https://api.coindesk.com/v1/bpi/historical/close.json?";
+    // private static final String HISTORICAL_PRICE_URL = "https://api.coindesk.com/v1/bpi/historical/close.json?";
     private static final String SUPPORTED_CURRENCIES_URL = "https://api.coindesk.com/v1/bpi/supported-currencies.json";
+
+    @Value("${historical.price.url}")
+    private String historicalPriceURL;
+
+    @Value("${supported.currencies.url}")
+    private String supportedCurrenciesURL;
 
     private BitcoinBtree bTree;
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -40,19 +38,26 @@ public class BitcoinServiceImpl implements BitcoinService {
     @Autowired
     private CurrencyService currencyService;
 
-    @Value("${scheduler.time}")
-    private String schedulerTime;
+    @Value("${daily.price.update.cron}")
+    private String dailyPriceFetchCron;
 
     public BitcoinServiceImpl() {
         bTree = new BitcoinBtree(6);
     }
 
-    @Scheduled(cron = "${scheduler.time}")
+    @PostConstruct
+    public void init() {
+        // Deserialize the BTree from the file
+        bTree.deserializeFromFile();
+        fetchDailyBitcoinPrices();
+    }
+
+    @Scheduled(cron = "${daily.price.update.cron}")
     public void fetchDailyBitcoinPrices() {
         // Fetch daily bitcoin prices and update the BTree
         JSONArray jsonResponse;
         try {
-            jsonResponse = new JSONArray(RestUtil.sendGetRequest(HISTORICAL_PRICE_URL));
+            jsonResponse = new JSONArray(RestUtil.sendGetRequest(historicalPriceURL));
             BitcoinPriceResponse response = objectMapper.readValue(jsonResponse.toString(),
                     BitcoinPriceResponse.class);
             List<BitcoinPrice> bitcoinPrices = response.toBitcoinPriceList();

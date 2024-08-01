@@ -1,5 +1,10 @@
 package com.vengat.bitcoin_service.model;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class BitcoinPriceResponse {
@@ -33,6 +38,23 @@ public class BitcoinPriceResponse {
 
     public void setTime(Time time) {
         this.time = time;
+    }
+
+    public List<BitcoinPrice> toBitcoinPriceList() {
+        List<BitcoinPrice> bitcoinPrices = new ArrayList<>();
+        if (bpi != null && bpi.getPrices() != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            for (Map.Entry<String, Double> entry : bpi.getPrices().entrySet()) {
+                try {
+                    Date date = dateFormat.parse(entry.getKey());
+                    BitcoinPrice bitcoinPrice = new BitcoinPrice(date, entry.getValue());
+                    bitcoinPrices.add(bitcoinPrice);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return bitcoinPrices;
     }
 
     public static class Bpi {

@@ -8,9 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 
 import com.vengat.bitcoin_service.model.BitcoinPrice;
