@@ -20,19 +20,9 @@ public interface BitcoinService {
 
     boolean isAmountValid(double amount) throws Exception;
 
-    boolean isCurrencyCodeValid(String currency) throws Exception;
-
     boolean isCurrencyCodeValid(String currency, List<String> supportedCurrencies) throws Exception;
 
-    boolean isStartDateBeforeEndDate(String startDate, String endDate) throws Exception;
-
-    boolean isStartDateBeforeEndDate(String startDate, String endDate, String dateFormat) throws Exception;
-
-    boolean isStartDateBeforeEndDate(String startDate, String endDate, String dateFormat, String timeZone)
-            throws Exception;
-
-    boolean isStartDateBeforeEndDate(String startDate, String endDate, String dateFormat, String timeZone,
-            String locale) throws Exception;
+    boolean isStartDateBeforeEndDate(String startDate, String endDate, String dateFormat, String timeZone, String locale) throws Exception;
 
     double getHistoricalHigh(String startDate, String endDate, String currency) throws Exception;
 

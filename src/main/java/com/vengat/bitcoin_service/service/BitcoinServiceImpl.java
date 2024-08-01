@@ -127,37 +127,6 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
 
     @Override
-    public boolean isCurrencyCodeValid(String currency) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isCurrencyCodeValid'");
-    }
-
-    @Override
-    public boolean isCurrencyCodeValid(String currency, List<String> supportedCurrencies) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isCurrencyCodeValid'");
-    }
-
-    @Override
-    public boolean isStartDateBeforeEndDate(String startDate, String endDate) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isStartDateBeforeEndDate'");
-    }
-
-    @Override
-    public boolean isStartDateBeforeEndDate(String startDate, String endDate, String dateFormat) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isStartDateBeforeEndDate'");
-    }
-
-    @Override
-    public boolean isStartDateBeforeEndDate(String startDate, String endDate, String dateFormat, String timeZone)
-            throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isStartDateBeforeEndDate'");
-    }
-
-    @Override
     public boolean isStartDateBeforeEndDate(String startDate, String endDate, String dateFormat, String timeZone,
             String locale) throws Exception {
         // TODO Auto-generated method stub
@@ -186,6 +155,11 @@ public class BitcoinServiceImpl implements BitcoinService {
     public double usdToCurrency(double amount, String currency) throws Exception {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'usdToCurrency'");
+    }
+
+    @Override
+    public boolean isCurrencyCodeValid(String currency, List<String> supportedCurrencies) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }
