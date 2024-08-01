@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,6 +18,7 @@ public class BitcoinBtree {
     private BTreeNode root;
     private int t;
     private final String filename;
+    
 
     public class BTreeNode {
         BitcoinPrice[] keys;
@@ -104,25 +106,25 @@ public class BitcoinBtree {
 
     }
 
-    private void search_range(BTreeNode node, BitcoinPrice start, BitcoinPrice end, List<BitcoinPrice> result) {
+    private void search_range(BTreeNode node, Date start, Date end, List<BitcoinPrice> result) {
         if (node == null) {
             return;
         }
 
         int i = 0;
-        while (i < node.n && node.keys[i].compareTo(start) < 0) {
+        while (i < node.n && node.keys[i].getDate().before(start)) {
             i++;
         }
 
         if (node.isLeaf) {
-            while (i < node.n && node.keys[i].compareTo(end) <= 0) {
+            while (i < node.n && !node.keys[i].getDate().after(end)) {
                 result.add(node.keys[i]);
                 i++;
             }
         } else {
             while (i < node.n) {
                 search_range(node.children[i], start, end, result);
-                if (i < node.n && node.keys[i].compareTo(end) <= 0) {
+                if (i < node.n && !node.keys[i].getDate().after(end)) {
                     result.add(node.keys[i]);
                 }
                 i++;
@@ -131,11 +133,14 @@ public class BitcoinBtree {
         }
     }
 
-    public List<BitcoinPrice> search_range(BitcoinPrice start, BitcoinPrice end) {
+    public List<BitcoinPrice> search_range(Date start, Date end) {
         List<BitcoinPrice> result = new ArrayList<>();
         search_range(root, start, end, result);
+        BitcoinPrice.markMaxMinInRange(result, start, end);
         return result;
     }
+
+
 
     public void insertList(BitcoinPrice[] keys) {
         for (BitcoinPrice key : keys) {

@@ -1,7 +1,8 @@
 package com.vengat.bitcoin_service.service;
 
-import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -76,16 +77,9 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
 
     @Override
-    public List<String> getSupportedCurrencies() {
+    public Set<Currency> getSupportedCurrencies() {
         try {
-            String response = RestUtil.sendGetRequest(SUPPORTED_CURRENCIES_URL);
-            JSONArray jsonResponse = new JSONArray(response);
-            List<String> currencies = new ArrayList<>();
-            for (int i = 0; i < jsonResponse.length(); i++) {
-                JSONObject currencyObj = jsonResponse.getJSONObject(i);
-                currencies.add(currencyObj.getString("currency"));
-            }
-            return currencies;
+            return currencyService.getSupportedCurrencies();
         } catch (Exception e) {
             e.printStackTrace();
             return null; // In production, consider a more robust error handling strategy.
