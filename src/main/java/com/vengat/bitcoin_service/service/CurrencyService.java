@@ -75,7 +75,7 @@ public class CurrencyService {
         }
     }
 
-    private void loadExchangeRatesFromFile() {
+    protected void loadExchangeRatesFromFile() {
         File file = new File("exchangeRates.ser");
         if (file.exists()) {
             try (FileInputStream fileIn = new FileInputStream(file);
@@ -89,7 +89,7 @@ public class CurrencyService {
         }
     }
 
-    private void loadSupportedCurrenciesFromFile() {
+    protected void loadSupportedCurrenciesFromFile() {
         File file = new File("supportedCurrenciesCache.ser");
         logger.info("Loading supported currencies from file");
         if (file.exists()) {
@@ -134,7 +134,7 @@ public class CurrencyService {
         }
     }
 
-    private void saveExchangeRatesToFile() {
+    protected void saveExchangeRatesToFile() {
         try (FileOutputStream fileOut = new FileOutputStream("exchangeRates.ser");
              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
             out.writeObject(exchangeRates);
@@ -169,7 +169,7 @@ public class CurrencyService {
         }
     }
 
-    private void saveSupportedCurrenciesToFile() {
+    protected void saveSupportedCurrenciesToFile() {
         try (FileOutputStream fileOut = new FileOutputStream("supportedCurrenciesCache.ser");
              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
             out.writeObject(supportedCurrenciesCache);
