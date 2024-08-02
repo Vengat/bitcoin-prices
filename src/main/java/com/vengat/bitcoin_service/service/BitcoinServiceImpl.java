@@ -25,8 +25,6 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class BitcoinServiceImpl implements BitcoinService {
 
-    // private static final String HISTORICAL_PRICE_URL = "https://api.coindesk.com/v1/bpi/historical/close.json?";
-    // private static final String SUPPORTED_CURRENCIES_URL = "https://api.coindesk.com/v1/bpi/supported-currencies.json";
 
     private static final Logger logger = LoggerFactory.getLogger(BitcoinServiceImpl.class);
     
@@ -77,20 +75,27 @@ public class BitcoinServiceImpl implements BitcoinService {
     @Override
     public List<BitcoinPrice> getHistoricalPrices(Date startDate, Date endDate, String currency) {
         if (startDate == null || endDate == null) {
+            logger.error("Start date and end date cannot be null");
             throw new IllegalArgumentException("Start date and end date cannot be null");
         }
         if (currency == null || currency.isEmpty()) {
+            logger.error("Currency cannot be null or empty");
             throw new IllegalArgumentException("Currency cannot be null or empty");
         }
         if (!isCurrencySupported(currency)) {
+            logger.error("Currency not supported");
             throw new IllegalArgumentException("Currency not supported");
         }
         List<BitcoinPrice> prices = bTree.search_range(startDate, endDate);
-
+        if (prices == null || prices.isEmpty()) {
+            logger.error("No data found for the given date range");
+            throw new IllegalArgumentException("No data found for the given date range");
+        }
         double exchangeRate = currencyService.getUSDExchangeRate(currency);
         for (BitcoinPrice price : prices) {
             price.setPrice(price.getPrice() * exchangeRate);
         }
+        logger.info("Returning historical prices for the given date range");
         return prices;
     }
 
@@ -99,6 +104,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         try {
             return currencyService.getSupportedCurrencies();
         } catch (Exception e) {
+            logger.error("Failed to fetch supported currencies", e);
             e.printStackTrace();
             return null; // In production, consider a more robust error handling strategy.
         }
@@ -107,11 +113,13 @@ public class BitcoinServiceImpl implements BitcoinService {
     @Override
     public double convertCurrency(double amount, String toCurrency) {
         double exchangeRate = currencyService.getUSDExchangeRate(toCurrency);
+        logger.info("Converting {} USD to {}", amount, toCurrency);
         return amount * exchangeRate; 
     }
 
     @Override
     public boolean isCurrencySupported(String currency) {
+        logger.info("Checking if currency {} is supported", currency);
         return currencyService.isCurrencySupported(currency);
     }
 

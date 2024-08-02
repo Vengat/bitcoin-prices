@@ -31,5 +31,5 @@ public class BitcoinUtil {
         }
         return bitcoinPrices;
     }
-
+    
 }

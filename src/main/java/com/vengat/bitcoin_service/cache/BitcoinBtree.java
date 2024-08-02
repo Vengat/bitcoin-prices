@@ -18,9 +18,16 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.vengat.bitcoin_service.model.BitcoinPrice;
 
+
 public class BitcoinBtree {
+
+    private final static Logger logger = LoggerFactory.getLogger(BitcoinBtree.class);
+    
     private BTreeNode root;
     private int t;
     private final String filename;
@@ -62,6 +69,7 @@ public class BitcoinBtree {
             this.root = loadedTree.root;
             this.t = loadedTree.t;
         } catch (IOException | ClassNotFoundException e) {
+            logger.error("Error deserializing BTree from file", e);
             e.printStackTrace();
         } finally {
             writeLock.unlock();
@@ -75,6 +83,7 @@ public class BitcoinBtree {
                 ObjectOutputStream out = new ObjectOutputStream(fileOut);) {
             out.writeObject(this);
         } catch (IOException e) {
+            logger.error("Error serializing BTree to file", e);
             e.printStackTrace();
         } finally {
             writeLock.unlock();
@@ -88,6 +97,7 @@ public class BitcoinBtree {
                     PrintWriter pw = new PrintWriter(fw)) {
                 pw.println(key);
             } catch (IOException e) {
+                logger.error("Error writing to log file", e);
                 e.printStackTrace();
             } finally {
                 writeLock.unlock();
@@ -97,11 +107,13 @@ public class BitcoinBtree {
 
     private void writeToDiskAsync() {
         // new Thread(() -> serializeToFile()).start();
+        logger.info("Writing to disk asynchronously");
         CompletableFuture.runAsync(() -> serializeToFile(), executorService);
     }
 
     public boolean contains(BitcoinPrice key) {
         readLock.lock();
+        logger.info("Checking if key exists in BTree");
         try {
             return search(key) != null;
         } finally {
@@ -111,6 +123,7 @@ public class BitcoinBtree {
 
     public BTreeNode search(BitcoinPrice k) {
         readLock.lock();
+        logger.info("Searching for key in BTree");
         try {
             return search(root, k);
         } finally {
@@ -119,7 +132,7 @@ public class BitcoinBtree {
     }
 
     private BTreeNode search(BTreeNode node, BitcoinPrice k) {
-
+        logger.info("Searching for key in BTree node");
         if (node == null) {
             return null;
         }
@@ -134,6 +147,7 @@ public class BitcoinBtree {
         }
 
         if (node.isLeaf) {
+            logger.info("Key not found in BTree node");
             return null;
         } else {
             return search(node.children[i + 1], k);
@@ -146,6 +160,7 @@ public class BitcoinBtree {
             return;
         }
 
+        logger.info("Searching for keys in BTree node in range {} to {}", start, end);
         int i = 0;
         while (i < node.n && node.keys[i].getDate().before(start)) {
             i++;
@@ -170,6 +185,7 @@ public class BitcoinBtree {
 
     public List<BitcoinPrice> search_range(Date start, Date end) {
         readLock.lock();
+        logger.info("Searching for keys in BTree in range {} to {}", start, end);
         try {
             List<BitcoinPrice> result = new ArrayList<>();
             search_range(root, start, end, result);
@@ -256,6 +272,7 @@ public class BitcoinBtree {
     
             for (int j = 0; j < t - 1; j++) {
                 if (fullChild.keys[j + t] == null) {
+                    logger.error("Key cannot be null");
                     throw new IllegalStateException("Key cannot be null");
                 }
                 newNode.keys[j] = fullChild.keys[j + t];
@@ -265,6 +282,7 @@ public class BitcoinBtree {
             if (!fullChild.isLeaf) {
                 for (int j = 0; j < t; j++) {
                     if (fullChild.children[j + t] == null) {
+                        logger.error("Child node cannot be null");
                         throw new IllegalStateException("Child node cannot be null");
                     }
                     newNode.children[j] = fullChild.children[j + t];
@@ -284,6 +302,7 @@ public class BitcoinBtree {
             }
     
             if (fullChild.keys[t - 1] == null) {
+                logger.error("Key cannot be null");
                 throw new IllegalStateException("Key cannot be null");
             }
             parent.keys[i] = fullChild.keys[t - 1];
@@ -291,6 +310,7 @@ public class BitcoinBtree {
             fullChild.keys[t - 1] = null;
             parent.n += 1;
             if (parent.n > 2 * t - 1) {
+                logger.error("Parent node is full");
                 throw new IllegalStateException("Parent node is full");
             }
         } finally {
@@ -341,6 +361,7 @@ public class BitcoinBtree {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException ex) {
+            logger.error("Error shutting down executor service", ex);
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }

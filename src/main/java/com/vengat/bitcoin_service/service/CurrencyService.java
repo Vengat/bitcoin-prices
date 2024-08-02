@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,6 +28,8 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class CurrencyService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CurrencyService.class);
 
     @Value("${currency.api.key}")
     private String apiKey;
@@ -55,6 +59,7 @@ public class CurrencyService {
         try {
             getLatestExchangeRates("USD", null);
         } catch (Exception e) {
+            logger.error("Failed to fetch exchange rates", e);
             e.printStackTrace();
             loadExchangeRatesFromFile();
         }
@@ -64,6 +69,7 @@ public class CurrencyService {
         try {
             updateSupportedCurrencies();
         } catch (Exception e) {
+            logger.error("Failed to fetch supported currencies", e);
             e.printStackTrace();
             loadSupportedCurrenciesFromFile();
         }
@@ -77,6 +83,7 @@ public class CurrencyService {
                 ConcurrentHashMap<String, Double> loadedExchangeRates = (ConcurrentHashMap<String, Double>) in.readObject();
                 exchangeRates.putAll(loadedExchangeRates);
             } catch (IOException | ClassNotFoundException ex) {
+                logger.error("Failed to load exchange rates from file", ex);
                 ex.printStackTrace();
             }
         }
@@ -84,6 +91,7 @@ public class CurrencyService {
 
     private void loadSupportedCurrenciesFromFile() {
         File file = new File("supportedCurrenciesCache.ser");
+        logger.info("Loading supported currencies from file");
         if (file.exists()) {
             try (FileInputStream fileIn = new FileInputStream(file);
                  ObjectInputStream in = new ObjectInputStream(fileIn)) {
@@ -92,12 +100,14 @@ public class CurrencyService {
                     .map(Currency::getInstance)
                     .collect(Collectors.toSet());
             } catch (IOException | ClassNotFoundException ex) {
+                logger.error("Failed to load supported currencies from file", ex);
                 ex.printStackTrace();
             }
         }
     }
 
     public Map<String, Double> getLatestExchangeRates(String baseCurrency, String currencies) {
+        logger.info("Fetching latest exchange rates");
         StringBuilder uriBuilder = new StringBuilder(apiUrl);
         uriBuilder.append("?apikey=").append(apiKey);
 
@@ -109,6 +119,7 @@ public class CurrencyService {
         }
 
         String uri = uriBuilder.toString();
+        logger.info("Fetching exchange rates from {}", uri);
         ResponseEntity<CurrencyExchangeRateApiResponse> response = new RestTemplate().getForEntity(uri,
                 CurrencyExchangeRateApiResponse.class);
 
@@ -118,6 +129,7 @@ public class CurrencyService {
             saveExchangeRatesToFile();
             return data;
         } else {
+            logger.error("Failed to fetch exchange rates");
             throw new RuntimeException("Failed to fetch exchange rates");
         }
     }
@@ -127,12 +139,14 @@ public class CurrencyService {
              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
             out.writeObject(exchangeRates);
         } catch (IOException e) {
+            logger.error("Failed to save exchange rates to file", e);
             e.printStackTrace();
         }
     }
 
     @Scheduled(cron = "${exchange.rate.update.cron}")
     public void scheduleExchangeRateUpdate() {
+        logger.info("Cron Updating exchange rates");
         getLatestExchangeRates("USD", null);
     }
 
@@ -146,6 +160,7 @@ public class CurrencyService {
 
     @Scheduled(cron = "${supported.currencies.update.cron}")
     public void updateSupportedCurrencies() {
+        logger.info("Cron Updating supported currencies");
         Set<Currency> newCurrencies = getSupportedCurrencies();
         synchronized (supportedCurrenciesCache) {
             supportedCurrenciesCache.clear();
@@ -159,6 +174,7 @@ public class CurrencyService {
              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
             out.writeObject(supportedCurrenciesCache);
         } catch (IOException e) {
+            logger.error("Failed to save supported currencies to file", e);
             e.printStackTrace();
         }
     }
@@ -168,6 +184,7 @@ public class CurrencyService {
     }
 
     public Set<Currency> getSupportedCurrencies() {
+        logger.info("Fetching supported currencies");
         ResponseEntity<CurrencyApiResponse> response = new RestTemplate().getForEntity(supportedCurrencies,
                 CurrencyApiResponse.class);
 
@@ -178,6 +195,7 @@ public class CurrencyService {
                     .collect(Collectors.toSet());
             return currencySet;
         } else {
+            logger.error("Failed to fetch supported currencies");
             throw new RuntimeException("Failed to fetch supported currencies");
         }
     }
