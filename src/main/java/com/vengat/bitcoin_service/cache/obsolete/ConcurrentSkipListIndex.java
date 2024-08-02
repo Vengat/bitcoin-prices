@@ -1,8 +1,7 @@
-package com.vengat.bitcoin_service.cache;
+package com.vengat.bitcoin_service.cache.obsolete;
 
 import java.time.LocalDate;
 import java.util.NavigableMap;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class ConcurrentSkipListIndex {

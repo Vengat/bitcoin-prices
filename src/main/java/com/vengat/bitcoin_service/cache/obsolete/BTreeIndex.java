@@ -1,4 +1,4 @@
-package com.vengat.bitcoin_service.cache;
+package com.vengat.bitcoin_service.cache.obsolete;
 
 import java.time.LocalDate;
 

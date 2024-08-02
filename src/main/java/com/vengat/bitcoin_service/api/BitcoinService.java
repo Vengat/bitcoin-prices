@@ -1,22 +1,21 @@
 package com.vengat.bitcoin_service.api;
 
 import java.util.Currency;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.json.JSONException;
-
-import com.vengat.bitcoin_service.model.BitcoinPriceResponse;
+import com.vengat.bitcoin_service.model.BitcoinPrice;
 
 public interface BitcoinService {
 
-    BitcoinPriceResponse getHistoricalPrices(String startDate, String endDate, String currency);
+    List<BitcoinPrice> getHistoricalPrices(Date startDate, Date endDate, String currency);
 
     Set<Currency> getSupportedCurrencies();
 
-    double convertCurrency(double amount, String fromCurrency, String toCurrency);
+    double convertCurrency(double amount, String toCurrency);
 
-    boolean isCurrencySupported(String currency) throws JSONException, Exception;
+    boolean isCurrencySupported(String currency);
 
     boolean isDateValid(String date) throws Exception;
 

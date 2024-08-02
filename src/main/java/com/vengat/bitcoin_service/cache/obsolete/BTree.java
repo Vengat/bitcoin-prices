@@ -1,9 +1,7 @@
-package com.vengat.bitcoin_service.cache;
+package com.vengat.bitcoin_service.cache.obsolete;
 
 import java.util.Arrays;
 import java.util.Stack;
-
-import com.fasterxml.jackson.databind.node.BinaryNode;
 
 public class BTree {
     private BTreeNode root;

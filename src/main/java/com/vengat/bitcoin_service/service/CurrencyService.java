@@ -136,7 +136,7 @@ public class CurrencyService {
         getLatestExchangeRates("USD", null);
     }
 
-    public Double getExchangeRate(String currency) {
+    public double getExchangeRate(String currency) {
         return exchangeRates.get(currency);
     }
 
@@ -185,5 +185,9 @@ public class CurrencyService {
     public boolean isCurrencySupported(String currencySymbol) {
         return supportedCurrenciesCache.stream()
                 .anyMatch(currency -> currency.getCurrencyCode().equals(currencySymbol));
+    }
+
+    public double getUSDExchangeRate(String currency) {
+        return exchangeRates.get(currency);
     }
 }

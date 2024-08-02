@@ -1,12 +1,13 @@
 package com.vengat.bitcoin_service.service;
 
 import java.util.Currency;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,8 +26,10 @@ import jakarta.annotation.PostConstruct;
 public class BitcoinServiceImpl implements BitcoinService {
 
     // private static final String HISTORICAL_PRICE_URL = "https://api.coindesk.com/v1/bpi/historical/close.json?";
-    private static final String SUPPORTED_CURRENCIES_URL = "https://api.coindesk.com/v1/bpi/supported-currencies.json";
+    // private static final String SUPPORTED_CURRENCIES_URL = "https://api.coindesk.com/v1/bpi/supported-currencies.json";
 
+    private static final Logger logger = LoggerFactory.getLogger(BitcoinServiceImpl.class);
+    
     @Value("${historical.price.url}")
     private String historicalPriceURL;
 
@@ -65,15 +68,30 @@ public class BitcoinServiceImpl implements BitcoinService {
             bTree.insertList(bitcoinPrices);
         } catch (Exception e) {
             // TODO Auto-generated catch block
+            logger.error("Error fetching daily bitcoin prices", e);
             e.printStackTrace();
         }
 
     }
 
     @Override
-    public BitcoinPriceResponse getHistoricalPrices(String startDate, String endDate, String currency) {
-        // Fetch historical bitcoin prices from the BTree
-        throw new UnsupportedOperationException("Unimplemented method 'getHistoricalPrices'");
+    public List<BitcoinPrice> getHistoricalPrices(Date startDate, Date endDate, String currency) {
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Start date and end date cannot be null");
+        }
+        if (currency == null || currency.isEmpty()) {
+            throw new IllegalArgumentException("Currency cannot be null or empty");
+        }
+        if (!isCurrencySupported(currency)) {
+            throw new IllegalArgumentException("Currency not supported");
+        }
+        List<BitcoinPrice> prices = bTree.search_range(startDate, endDate);
+
+        double exchangeRate = currencyService.getUSDExchangeRate(currency);
+        for (BitcoinPrice price : prices) {
+            price.setPrice(price.getPrice() * exchangeRate);
+        }
+        return prices;
     }
 
     @Override
@@ -87,25 +105,14 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
 
     @Override
-    public double convertCurrency(double amount, String fromCurrency, String toCurrency) {
-        // Simulate currency conversion. Implement actual conversion logic based on your
-        // requirements.
-        return amount; // Placeholder implementation
+    public double convertCurrency(double amount, String toCurrency) {
+        double exchangeRate = currencyService.getUSDExchangeRate(toCurrency);
+        return amount * exchangeRate; 
     }
 
     @Override
-    public boolean isCurrencySupported(String currency) throws JSONException, Exception {
-        String urlString = String.format(SUPPORTED_CURRENCIES_URL, currency);
-        JSONArray jsonResponse = new JSONArray(RestUtil.sendGetRequest(urlString));
-
-        for (int i = 0; i < jsonResponse.length(); i++) {
-            JSONObject currencyObj = jsonResponse.getJSONObject(i);
-            if (currencyObj.getString("currency").equals(currency)) {
-                return true;
-            }
-        }
-
-        return false;
+    public boolean isCurrencySupported(String currency) {
+        return currencyService.isCurrencySupported(currency);
     }
 
     @Override
@@ -147,8 +154,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     @Override
     public double usdToCurrency(double amount, String currency) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'usdToCurrency'");
+        double exchangeRate = currencyService.getUSDExchangeRate(currency);
+        return amount * exchangeRate; 
     }
 
     @Override
