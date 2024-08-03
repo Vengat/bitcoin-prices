@@ -4,8 +4,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-public class BitcoinPrice implements Comparable<BitcoinPrice> {
+public class BitcoinPrice implements Comparable<BitcoinPrice>, java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private Date date;
     private Double price;
     private boolean isMax;

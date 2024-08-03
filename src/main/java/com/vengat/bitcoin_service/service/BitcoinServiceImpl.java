@@ -44,13 +44,13 @@ public class BitcoinServiceImpl implements BitcoinService {
     private String dailyPriceFetchCron;
 
     public BitcoinServiceImpl() {
-        bTree = new BitcoinBtree(6);
+        
     }
 
     @PostConstruct
     public void init() {
-        // Deserialize the BTree from the file
-        bTree.deserializeFromFile();
+        // Initialize or load the BTree from the file
+        bTree = BitcoinBtree.initializeOrLoad(6);
         fetchDailyBitcoinPrices();
     }
 

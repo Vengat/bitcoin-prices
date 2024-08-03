@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,6 +22,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vengat.bitcoin_service.model.CurrencyApiResponse;
 import com.vengat.bitcoin_service.model.CurrencyExchangeRateApiResponse;
 
@@ -183,17 +186,41 @@ public class CurrencyService {
         return supportedCurrenciesCache;
     }
 
+    // public Set<Currency> getSupportedCurrencies() {
+    //     logger.info("Fetching supported currencies");
+    //     // ResponseEntity<CurrencyApiResponse[]> response = new RestTemplate().getForEntity(supportedCurrencies, CurrencyApiResponse[].class);
+    //     ResponseEntity<String> response = new RestTemplate().getForEntity(supportedCurrencies, String.class);
+    //     logger.info("Fetched supported currencies {}", (Object) response.getBody());
+        
+    //     if (response.getStatusCode().is2xxSuccessful()) {
+    //         logger.info("Fetched supported currencies successfully {}", (Object) response.getBody());
+    //         Set<Currency> currencySet = Arrays.stream(response.getBody())
+    //                 .map(CurrencyApiResponse::getCurrency)
+    //                 .collect(Collectors.toSet());
+    //         return currencySet;
+    //     } else {
+    //         logger.error("Failed to fetch supported currencies");
+    //         throw new RuntimeException("Failed to fetch supported currencies");
+    //     }
+    // }
+
     public Set<Currency> getSupportedCurrencies() {
         logger.info("Fetching supported currencies");
-        ResponseEntity<CurrencyApiResponse> response = new RestTemplate().getForEntity(supportedCurrencies,
-                CurrencyApiResponse.class);
+        ResponseEntity<String> response = new RestTemplate().getForEntity(supportedCurrencies, String.class);
+        logger.info("Fetched supported currencies JSON: {}", response.getBody());
 
         if (response.getStatusCode().is2xxSuccessful()) {
-            Map<String, String> data = response.getBody().getData();
-            Set<Currency> currencySet = data.keySet().stream()
-                    .map(Currency::getInstance)
-                    .collect(Collectors.toSet());
-            return currencySet;
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                CurrencyApiResponse[] currencyArray = mapper.readValue(response.getBody(), CurrencyApiResponse[].class);
+                Set<Currency> currencySet = Arrays.stream(currencyArray)
+                        .map(CurrencyApiResponse::getCurrency)
+                        .collect(Collectors.toSet());
+                return currencySet;
+            } catch (JsonProcessingException e) {
+                logger.error("Error parsing JSON response", e);
+                throw new RuntimeException("Failed to parse supported currencies", e);
+            }
         } else {
             logger.error("Failed to fetch supported currencies");
             throw new RuntimeException("Failed to fetch supported currencies");
