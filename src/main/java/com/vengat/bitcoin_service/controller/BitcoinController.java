@@ -18,14 +18,16 @@ import com.vengat.bitcoin_service.dto.BitcoinPriceDTO;
 import com.vengat.bitcoin_service.model.BitcoinPrice;
 import com.vengat.bitcoin_service.service.CurrencyService;
 import com.vengat.bitcoin_service.util.BitcoinPriceConverter;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/bitcoin")
-@Api(value = "Bitcoin Controller", description = "REST APIs related to Bitcoin Entity")
+@Tag(name = "Bitcoin", description = "API for Bitcoin operations")
 public class BitcoinController {
 
     @Autowired
@@ -34,12 +36,17 @@ public class BitcoinController {
     @Autowired
     private CurrencyService currencyService;
 
-    @ApiOperation(value = "Get Historical Prices", notes = "Fetch historical prices of Bitcoin")
+    @Operation(summary = "Get Historical Prices", description = "Get historical prices for Bitcoin")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved prices"),
+        @ApiResponse(responseCode = "400", description = "Invalid input parameters"),
+        @ApiResponse(responseCode = "404", description = "Prices not found")
+    })
     @GetMapping("/historical-prices")
     public EntityModel<List<BitcoinPriceDTO>> getHistoricalPrices(
-            @ApiParam(value = "Start Date", required = true) @RequestParam Date startDate,
-            @ApiParam(value = "End Date", required = true) @RequestParam Date endDate,
-            @ApiParam(value = "Currency", required = true) @RequestParam String currency) {
+            @Parameter(description = "Start Date", required = true, schema = @Schema(type = "string", format = "date")) @RequestParam Date startDate,
+            @Parameter(description = "End Date", required = true, schema = @Schema(type = "string", format = "date")) @RequestParam Date endDate,
+            @Parameter(description = "Currency", required = true) @RequestParam String currency) {
         List<BitcoinPrice> prices = bitcoinService.getHistoricalPrices(startDate, endDate, currency);
         List<BitcoinPriceDTO> priceDTOs = BitcoinPriceConverter.toDTOList(prices, currency);
 
@@ -52,7 +59,10 @@ public class BitcoinController {
         return resource;
     }
 
-    @ApiOperation(value = "Get Supported Currencies", notes = "Fetch supported currencies")
+    @Operation(summary = "Get Supported Currencies", description = "Get the list of supported currencies")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved supported currencies")
+    })
     @GetMapping("/supported-currencies")
     public Set<Currency> getSupportedCurrencies() {
         return currencyService.getSupportedCurrencies();

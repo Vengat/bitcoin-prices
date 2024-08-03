@@ -37,7 +37,7 @@ public class CurrencyService {
     @Value("${currency.api.url}")
     private String apiUrl;
 
-    @Value("${supported.currency.url}")
+    @Value("${supported.currencies.url}")
     private String supportedCurrencies;
 
     @Value("${exchange.rate.update.cron}")
