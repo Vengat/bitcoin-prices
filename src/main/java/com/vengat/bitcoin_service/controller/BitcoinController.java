@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +19,12 @@ import com.vengat.bitcoin_service.dto.BitcoinPriceDTO;
 import com.vengat.bitcoin_service.model.BitcoinPrice;
 import com.vengat.bitcoin_service.service.CurrencyService;
 import com.vengat.bitcoin_service.util.BitcoinPriceConverter;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -44,9 +46,12 @@ public class BitcoinController {
     })
     @GetMapping("/historical-prices")
     public EntityModel<List<BitcoinPriceDTO>> getHistoricalPrices(
-            @Parameter(description = "Start Date", required = true, schema = @Schema(type = "string", format = "date")) @RequestParam Date startDate,
-            @Parameter(description = "End Date", required = true, schema = @Schema(type = "string", format = "date")) @RequestParam Date endDate,
+            @Parameter(description = "Start Date", required = true, schema = @Schema(type = "string", format = "date"))
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
+            @Parameter(description = "End Date", required = true, schema = @Schema(type = "string", format = "date"))
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,
             @Parameter(description = "Currency", required = true) @RequestParam String currency) {
+
         List<BitcoinPrice> prices = bitcoinService.getHistoricalPrices(startDate, endDate, currency);
         List<BitcoinPriceDTO> priceDTOs = BitcoinPriceConverter.toDTOList(prices, currency);
 

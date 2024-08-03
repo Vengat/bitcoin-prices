@@ -111,3 +111,7 @@ Each component plays a specific role in the application:
 - `BitcoinBtree.java` is a custom B-tree data structure implementation designed specifically for efficient storage and retrieval of Bitcoin prices. It supports operations such as insertion, search of Bitcoin price entries.
 
 This project structure helps organize the codebase and separates concerns, making it easier to maintain and extend the Bitcoin Service.
+
+![Project Logo](bitcoin_service.drawio.svg)
+
+## Description
