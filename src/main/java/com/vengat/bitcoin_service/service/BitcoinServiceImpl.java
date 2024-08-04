@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vengat.bitcoin_service.api.BitcoinService;
 import com.vengat.bitcoin_service.cache.BitcoinBtree;
+import com.vengat.bitcoin_service.exceptions.InvalidDateException;
+import com.vengat.bitcoin_service.exceptions.NoDataFoundException;
+import com.vengat.bitcoin_service.exceptions.UnsupportedCurrencyException;
 import com.vengat.bitcoin_service.model.BitcoinPrice;
 import com.vengat.bitcoin_service.model.BitcoinPriceResponse;
 import com.vengat.bitcoin_service.util.RestUtil;
@@ -76,20 +79,20 @@ public class BitcoinServiceImpl implements BitcoinService {
     public List<BitcoinPrice> getHistoricalPrices(Date startDate, Date endDate, String currency) {
         if (startDate == null || endDate == null) {
             logger.error("Start date and end date cannot be null");
-            throw new IllegalArgumentException("Start date and end date cannot be null");
+            throw new InvalidDateException("Start date and end date cannot be null");
         }
         if (currency == null || currency.isEmpty()) {
             logger.error("Currency cannot be null or empty");
-            throw new IllegalArgumentException("Currency cannot be null or empty");
+            throw new UnsupportedCurrencyException("Currency cannot be null or empty");
         }
         if (!isCurrencySupported(currency)) {
             logger.error("Currency not supported");
-            throw new IllegalArgumentException("Currency not supported");
+            throw new UnsupportedCurrencyException("Currency not supported");
         }
         List<BitcoinPrice> prices = bTree.search_range(startDate, endDate);
         if (prices == null || prices.isEmpty()) {
             logger.error("No data found for the given date range");
-            throw new IllegalArgumentException("No data found for the given date range");
+            throw new NoDataFoundException("No data found for the given date range");
         }
         double exchangeRate = currencyService.getUSDExchangeRate(currency);
         for (BitcoinPrice price : prices) {

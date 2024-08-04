@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vengat.bitcoin_service.api.BitcoinService;
 import com.vengat.bitcoin_service.dto.BitcoinPriceDTO;
+import com.vengat.bitcoin_service.exceptions.InvalidDateException;
+import com.vengat.bitcoin_service.exceptions.NoDataFoundException;
+import com.vengat.bitcoin_service.exceptions.UnsupportedCurrencyException;
 import com.vengat.bitcoin_service.model.BitcoinPrice;
 import com.vengat.bitcoin_service.service.CurrencyService;
 import com.vengat.bitcoin_service.util.BitcoinPriceConverter;
@@ -62,6 +68,21 @@ public class BitcoinController {
                 .getSupportedCurrencies()).withRel("supported-currencies"));
 
         return resource;
+    }
+
+    @ExceptionHandler(InvalidDateException.class)
+    public ResponseEntity<String> handleInvalidDateException(InvalidDateException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UnsupportedCurrencyException.class)
+    public ResponseEntity<String> handleUnsupportedCurrencyException(UnsupportedCurrencyException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NoDataFoundException.class)
+    public ResponseEntity<String> handleNoDataFoundException(NoDataFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @Operation(summary = "Get Supported Currencies", description = "Get the list of supported currencies")
