@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.vengat.bitcoin_service.config.BpiDeserializer;
+
 public class BitcoinPriceResponse {
 
     private Bpi bpi;
@@ -57,6 +60,7 @@ public class BitcoinPriceResponse {
         return bitcoinPrices;
     }
 
+    @JsonDeserialize(using = BpiDeserializer.class)
     public static class Bpi {
         private Map<String, Double> prices;
 

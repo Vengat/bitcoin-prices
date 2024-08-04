@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,15 +59,18 @@ public class BitcoinServiceImpl implements BitcoinService {
     @Scheduled(cron = "${daily.price.update.cron}")
     public void fetchDailyBitcoinPrices() {
         // Fetch daily bitcoin prices and update the BTree
-        JSONArray jsonResponse;
+        String jsonResponse;
         try {
-            jsonResponse = new JSONArray(RestUtil.sendGetRequest(historicalPriceURL));
+            jsonResponse = RestUtil.sendGetRequest(historicalPriceURL);
+            ObjectMapper objectMapper = new ObjectMapper();
             BitcoinPriceResponse response = objectMapper.readValue(jsonResponse.toString(),
                     BitcoinPriceResponse.class);
             List<BitcoinPrice> bitcoinPrices = response.toBitcoinPriceList();
+            for (BitcoinPrice price : bitcoinPrices) {
+                logger.info("Inserting price {} for date {}", price.getPrice(), price.getDate());
+            }
             bTree.insertList(bitcoinPrices);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             logger.error("Error fetching daily bitcoin prices", e);
             e.printStackTrace();
         }

@@ -1,8 +1,9 @@
 package com.vengat.bitcoin_service.dto;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class BitcoinPriceDTO {
+public class BitcoinPriceDTO implements Serializable {
     
     private Date date;
     private double price;

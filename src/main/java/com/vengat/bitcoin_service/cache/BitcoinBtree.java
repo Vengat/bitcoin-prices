@@ -31,23 +31,29 @@ public class BitcoinBtree implements java.io.Serializable {
     
     private BTreeNode root;
     private int t;
-    private final String filename;
-    private static final long serialVersionUID = 1L;
+    private static transient final String FILENAME = "btree.ser";
+    private static transient final long serialVersionUID = 1L;
 
-    private final transient  ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final transient Lock readLock = readWriteLock.readLock();
-    private final transient Lock writeLock = readWriteLock.writeLock();
+    private transient  ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private transient Lock readLock = readWriteLock.readLock();
+    private transient Lock writeLock = readWriteLock.writeLock();
 
-    private final transient ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private transient ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-    
+    // Ensure locks are initialized after deserialization
+    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        ois.defaultReadObject();
+        readWriteLock = new ReentrantReadWriteLock();
+        readLock = readWriteLock.readLock();
+        writeLock = readWriteLock.writeLock();
+        executorService = Executors.newFixedThreadPool(4);
+    }
 
     public class BTreeNode implements java.io.Serializable {
         BitcoinPrice[] keys;
         int n;
         BTreeNode[] children;
         boolean isLeaf;
-        transient ReentrantReadWriteLock lock = new ReentrantReadWriteLock(); // we will use it later
         public BTreeNode(boolean isLeaf) {
             this.isLeaf = isLeaf;
             keys = new BitcoinPrice[(2 * t - 1)];
@@ -59,14 +65,14 @@ public class BitcoinBtree implements java.io.Serializable {
     public BitcoinBtree(int t) {
         this.t = t;
         root = new BTreeNode(true);
-        this.filename = "btree.ser";
+        // this.filename = "btree.ser";
     }
 
     public static BitcoinBtree initializeOrLoad(int t) {
-        String filename = "btree.ser";
-        File file = new File(filename);
+        // String filename = "btree.ser";
+        File file = new File(FILENAME);
         if (file.exists()) {
-            return deserializeFromFile(filename);
+            return deserializeFromFile(FILENAME);
         } else {
             BitcoinBtree newTree = new BitcoinBtree(t);
             newTree.serializeToFile();
@@ -86,8 +92,8 @@ public class BitcoinBtree implements java.io.Serializable {
     }
 
     public void deserializeFromFile() {
-        writeLock.lock();
-        try (FileInputStream fileIn = new FileInputStream(filename);
+        readLock.lock();
+        try (FileInputStream fileIn = new FileInputStream(FILENAME);
                 ObjectInputStream in = new ObjectInputStream(fileIn)) {
             BitcoinBtree loadedTree = (BitcoinBtree) in.readObject();
             this.root = loadedTree.root;
@@ -96,14 +102,14 @@ public class BitcoinBtree implements java.io.Serializable {
             logger.error("Error deserializing BTree from file", e);
             this.root = new BTreeNode(true);
         } finally {
-            writeLock.unlock();
+            readLock.unlock();
         }
     }
 
     private void serializeToFile() {
         writeLock.lock();
         try (
-                FileOutputStream fileOut = new FileOutputStream(filename);
+                FileOutputStream fileOut = new FileOutputStream(FILENAME);
                 ObjectOutputStream out = new ObjectOutputStream(fileOut);) {
             out.writeObject(this);
         } catch (IOException e) {
@@ -375,7 +381,6 @@ public class BitcoinBtree implements java.io.Serializable {
             insertNonFull(node.children[i], key);
         }
     }
-
 
     public void shutdown() {
         executorService.shutdown();

@@ -93,4 +93,5 @@ public class BitcoinController {
     public Set<Currency> getSupportedCurrencies() {
         return currencyService.getSupportedCurrencies();
     }
+
 }
