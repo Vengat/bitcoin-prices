@@ -118,35 +118,69 @@ This project structure helps organize the codebase and separates concerns, makin
 
 This project provides a service to fetch and persist Bitcoin prices and currency exchange rates. The service utilizes public APIs to gather data and stores it in memory and on disk to ensure availability even when the public APIs are not accessible.
 
-Functionality
-BitcoinService
-Initialization: When the server starts, the @PostConstruct method in BitcoinService is called.
-Data Fetching: It makes a call to https://api.coindesk.com/v1/bpi/historical/close.json to retrieve the last 30 days of Bitcoin prices.
-Data Storage: The prices are stored in a BTree data structure.
-Persistence: The BTree is serialized to disk to ensure data persistence.
-CurrencyService
-Initialization: When the server starts, the @PostConstruct method in CurrencyService is called.
-Data Fetching: It makes a call to a free public API to get exchange rates of different currencies with respect to USD.
-Supported Currencies: Another call is made to https://api.freecurrencyapi.com/v1/latest to get all supported currencies.
-Data Storage: Supported currencies are stored in a Set, and exchange rates are stored in a Map.
-Persistence: Both the Set and Map are serialized to disk to ensure data persistence.
-Data Persistence
-In-Memory Storage: All fetched data is stored in memory for quick access.
-Disk Storage: Data is serialized to disk to ensure it can be reloaded on server restart.
-Fallback Mechanism: If the public APIs are not available, the service can fetch data from in-memory storage or load it from disk.
-How It Works
-Server Startup: When the server starts, the @PostConstruct methods in BitcoinService and CurrencyService are triggered.
-Data Fetching: The services make calls to the respective public APIs to fetch the latest data.
-Data Storage: The fetched data is stored in appropriate data structures (BTree, Set, Map).
-Data Persistence: The data structures are serialized to disk.
-Fallback: If the public APIs are unavailable, the service uses the data from in-memory storage or loads it from disk.
-Configuration
-The endpoint for fetching supported currencies is configured in the application.properties file:
+## Functionality
 
-Running the Project
+### BitcoinService
+
+**Initialization:** When the server starts, the `@PostConstruct` method in `BitcoinService` is called.
+
+**Data Fetching:** It makes a call to `https://api.coindesk.com/v1/bpi/historical/close.json` to retrieve the last 30 days of Bitcoin prices.
+
+**Data Storage:** The prices are stored in a BTree data structure.
+
+**Persistence:** The BTree is serialized to disk to ensure data persistence.
+
+### CurrencyService
+
+**Initialization:** When the server starts, the `@PostConstruct` method in `CurrencyService` is called.
+
+**Data Fetching:** It makes a call to a free public API to get exchange rates of different currencies with respect to USD.
+
+**Supported Currencies:** Another call is made to `https://api.freecurrencyapi.com/v1/latest` to get all supported currencies.
+
+**Data Storage:** Supported currencies are stored in a Set, and exchange rates are stored in a Map.
+
+**Persistence:** Both the Set and Map are serialized to disk to ensure data persistence.
+
+### Data Persistence
+
+**In-Memory Storage:** All fetched data is stored in memory for quick access.
+
+**Disk Storage:** Data is serialized to disk to ensure it can be reloaded on server restart.
+
+**Fallback Mechanism:** If the public APIs are not available, the service can fetch data from in-memory storage or load it from disk.
+
+## How It Works
+
+**Server Startup:** When the server starts, the `@PostConstruct` methods in `BitcoinService` and `CurrencyService` are triggered.
+
+**Data Fetching:** The services make calls to the respective public APIs to fetch the latest data.
+
+**Data Storage:** The fetched data is stored in appropriate data structures (BTree, Set, Map).
+
+**Data Persistence:** The data structures are serialized to disk.
+
+**Fallback:** If the public APIs are unavailable, the service uses the data from in-memory storage or loads it from disk.
+
+## Configuration
+
+The endpoint for fetching supported currencies is configured in the `application.properties` file:
+
+```
+currency.api.endpoint=https://api.freecurrencyapi.com/v1/latest
+```
+
+## Running the Project
+
 To run the project, use the following command:
+
+```
+mvn spring-boot:run
+```
 
 This will start the server and initialize the services, fetching and persisting the necessary data.
 
-Conclusion
+## Conclusion
+
 This project ensures that Bitcoin prices and currency exchange rates are always available, even if the public APIs are down, by leveraging in-memory storage and disk persistence.
+
