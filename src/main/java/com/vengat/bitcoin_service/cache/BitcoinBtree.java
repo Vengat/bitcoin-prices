@@ -191,8 +191,9 @@ public class BitcoinBtree implements java.io.Serializable {
 
         logger.info("Searching for keys in BTree node in range {} to {}", start, end);
         int i = 0;
+        logger.info("--->Node keys: {}", node.keys[i].toString());
         while (i < node.n && node.keys[i].getDate().before(start)) {
-            i++;
+            i++;    
         }
 
         if (node.isLeaf) {

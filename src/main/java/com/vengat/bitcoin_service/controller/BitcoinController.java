@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +51,7 @@ public class BitcoinController {
         @ApiResponse(responseCode = "404", description = "Prices not found")
     })
     @GetMapping("/historical-prices")
-    public EntityModel<List<BitcoinPriceDTO>> getHistoricalPrices(
+    public CollectionModel<BitcoinPriceDTO> getHistoricalPrices(
             @Parameter(description = "Start Date", required = true, schema = @Schema(type = "string", format = "date"))
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
             @Parameter(description = "End Date", required = true, schema = @Schema(type = "string", format = "date"))
@@ -61,7 +61,8 @@ public class BitcoinController {
         List<BitcoinPrice> prices = bitcoinService.getHistoricalPrices(startDate, endDate, currency);
         List<BitcoinPriceDTO> priceDTOs = BitcoinPriceConverter.toDTOList(prices, currency);
 
-        EntityModel<List<BitcoinPriceDTO>> resource = EntityModel.of(priceDTOs);
+        CollectionModel<BitcoinPriceDTO> resource = CollectionModel.of(priceDTOs);
+        // EntityModel<List<BitcoinPriceDTO>> resource = EntityModel.of(priceDTOs);
         resource.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(BitcoinController.class)
                 .getHistoricalPrices(startDate, endDate, currency)).withSelfRel());
         resource.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(BitcoinController.class)
