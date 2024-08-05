@@ -114,6 +114,8 @@ This project structure helps organize the codebase and separates concerns, makin
 
 ![Project Logo](bitcoin_service.drawio.svg)
 
+![Project Logo](bitcoinsrvc_uml.drawio.svg)
+
 ## Description
 
 This project provides a service to fetch and persist Bitcoin prices and currency exchange rates. The service utilizes public APIs to gather data and stores it in memory and on disk to ensure availability even when the public APIs are not accessible.
